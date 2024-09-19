@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Converter from Widget to Iframe Widget</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      header {
+        background-color: #333;
+        color: white;
+        width: 100%;
+        padding: 20px;
+        text-align: center;
+      }
+
+      main {
+        margin: 20px;
+        display: flex;
+        flex-direction: column;
+        width: 80%;
+        max-width: 800px;
+      }
+
+      textarea {
+        width: 100%;
+        height: 200px;
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+        resize: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Converter from Widget to Iframe Widget</h1>
+    </header>
+
+    <main>
+      <textarea
+        id="widgetCode"
+        placeholder="Enter widget HTML code here..."
+      ></textarea>
+      <textarea
+        id="iframeCode"
+        placeholder="Converted iframe code will appear here..."
+        readonly
+      ></textarea>
+    </main>
+
+    <script>
+      document
+        .getElementById('widgetCode')
+        .addEventListener('input', convertWidgetToIframe);
+
+      function convertWidgetToIframe() {
+        const widgetCode = document.getElementById('widgetCode').value;
+
+        let iframeResizerScript = `<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.2.10/iframeResizer.min.js"><\/script>\n`;
+
+        const widgetDivs = widgetCode.match(
+          /<div class="elfsight-app-[\w-]+"[^>]*><\/div>/g
+        );
+
+        if (widgetDivs) {
+          const iframeBlocks = widgetDivs
+            .map((div, _, divs) => {
+              const widgetIdMatch = div.match(/elfsight-app-([\w-]+)/);
+              if (widgetIdMatch) {
+                const widgetId = widgetIdMatch[1].replace(/-/g, '');
+
+                return `${
+                  divs.length !== 1 ? `<!-- ${widgetIdMatch[0]} -->\n` : ''
+                }<iframe\n  src=\"https://${widgetId}.elf.site"\n  style=\"border: none; width: 100%"\n  onload=\"iFrameResize(this)\"\n><\/iframe>\n`;
+              }
+            })
+            .join('\n');
+
+          document.getElementById('iframeCode').value =
+            iframeResizerScript + iframeBlocks;
+        } else {
+          document.getElementById('iframeCode').value =
+            'No valid widgets found';
+        }
+      }
+    </script>
+  </body>
+</html>
